@@ -1,11 +1,9 @@
-import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
-import { HeaderTabs } from '../components/HeaderTabs/HeaderTabs';
+import { Container, Title } from '@mantine/core';
 
-export default function HomePage() {
+export default function ConstitutionPage() {
   return (
-    <>
-      <HeaderTabs />
-      <ColorSchemeToggle />
-    </>
+    <Container>
+      <Title style={{ marginBottom: '2rem' }}>Σύνταγμα</Title>
+    </Container>
   );
 }
