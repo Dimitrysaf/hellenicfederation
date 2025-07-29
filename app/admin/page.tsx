@@ -14,6 +14,7 @@ import {
   TextInput,
   Title,
 } from '@mantine/core';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { Link, RichTextEditor } from '@mantine/tiptap';
@@ -65,7 +66,7 @@ export default function AdminPage() {
 
   const handleDelete = (id: string) => {
     modals.openConfirmModal({
-      title: 'Delete Article',
+      title: 'Διαγραφή άρθρου',
       children: (
         <Text size="sm">
           Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτό το άρθρο; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.
@@ -159,13 +160,9 @@ export default function AdminPage() {
       <Table.Td>{article.number}</Table.Td>
       <Table.Td>{article.name}</Table.Td>
       <Table.Td>
-        <Group>
-          <Button size="xs" color="red" onClick={() => handleDelete(article.id)}>
-            Διαγραφή
-          </Button>
-          <Button size="xs" onClick={() => handleEdit(article)}>
-            Επεξεργασία
-          </Button>
+        <Group justify="flex-end">
+          <Button size="xs" color="red" onClick={() => handleDelete(article.id)}><IconTrash size={14} /></Button>
+          <Button size="xs" onClick={() => handleEdit(article)}><IconEdit size={14} /></Button>
         </Group>
       </Table.Td>
     </Table.Tr>
@@ -173,16 +170,16 @@ export default function AdminPage() {
 
   return (
     <Container>
-      <Group style={{ marginBottom: 16 }}>
+      <Group justify="space-between" style={{ marginBottom: 16 }}>
         <Title>Διαχείριση - Άρθρα</Title>
         <Button onClick={handleAdd}>Προσθήκη άρθρου</Button>
       </Group>
       <Table>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Αριθμός</Table.Th>
+            <Table.Th style={{ width: '1%' }}>Α/A</Table.Th>
             <Table.Th>Όνομα</Table.Th>
-            <Table.Th>Ενέργειες</Table.Th>
+            <Table.Th style={{ width: '14%' }}>Ενέργειες</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>{rows}</Table.Tbody>
@@ -192,15 +189,15 @@ export default function AdminPage() {
         opened={opened}
         onClose={handleCloseModal}
         title={selectedArticle ? 'Επεξεργασία' : 'Προσθήκη'}
-        fullScreen
+        size="xl"
       >
         <TextInput
-          label="Article Name"
+          label="Όμονα άρθρου"
           value={editedName}
           onChange={(event) => setEditedName(event.currentTarget.value)}
         />
         <NumberInput
-          label="Article Number"
+          label="Αριθμός άρθρου"
           value={editedNumber}
           onChange={setEditedNumber}
           min={1}

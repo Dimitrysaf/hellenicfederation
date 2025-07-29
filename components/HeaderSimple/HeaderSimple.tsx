@@ -7,6 +7,8 @@ import { useDisclosure } from '@mantine/hooks';
 import { MantineLogo } from '@mantinex/mantine-logo';
 import classes from './HeaderSimple.module.css';
 
+import { ColorSchemeToggle } from '../ColorSchemeToggle/ColorSchemeToggle';
+
 const links = [
   { link: '/', label: 'Σύνταγμα' },
   { link: '/faq', label: 'Ερωτήσεις' },
@@ -41,10 +43,13 @@ export function HeaderSimple() {
         <Group gap={5} visibleFrom="xs">
           {items}
         </Group>
+        <Group>
+          <ColorSchemeToggle />
+          <Burger opened={opened} onClick={toggle} hiddenFrom="xs" size="sm" />
+        </Group>
         <Drawer opened={opened} onClose={close} title="Πλοήγηση" hiddenFrom="xs" size="md">
           <Stack>{items}</Stack>
         </Drawer>
-        <Burger opened={opened} onClick={toggle} hiddenFrom="xs" size="sm" />
       </Container>
     </header>
   );
