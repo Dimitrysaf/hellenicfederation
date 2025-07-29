@@ -202,7 +202,7 @@ export default function AdminPage() {
   return (
     <Container>
       <Group justify="space-between" style={{ marginBottom: 16 }}>
-        <Title>Διαχείριση - Άρθρα</Title>
+        <Title><b>Διαχείριση - Άρθρα</b></Title>
         <Button onClick={handleAdd}>Προσθήκη άρθρου</Button>
       </Group>
       <Table>

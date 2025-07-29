@@ -3,7 +3,7 @@ import { Container, Title } from '@mantine/core';
 export default function AboutPage() {
   return (
     <Container>
-      <Title>Σχετικά</Title>
+      <Title><b>Σχετικά</b></Title>
     </Container>
   );
 }

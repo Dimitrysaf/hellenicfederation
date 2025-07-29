@@ -17,7 +17,7 @@ export default function ConstitutionPage() {
 
   return (
     <Container>
-      <Title style={{ marginBottom: '2rem' }}>Σύνταγμα</Title>
+      <Title style={{ marginBottom: '2rem' }}><b>Σύνταγμα</b></Title>
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ marginBottom: '2rem' }}>
         <Title order={2}><b><i>Προοίμιο</i></b></Title>
         <Text>
