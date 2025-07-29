@@ -19,6 +19,11 @@ import { useDisclosure } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { Link, RichTextEditor } from '@mantine/tiptap';
 import { Article } from '../../db/articles';
+import Highlight from '@tiptap/extension-highlight';
+import Underline from '@tiptap/extension-underline';
+import TextAlign from '@tiptap/extension-text-align';
+import Superscript from '@tiptap/extension-superscript';
+import SubScript from '@tiptap/extension-subscript';
 
 export default function AdminPage() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -28,7 +33,33 @@ export default function AdminPage() {
   const [opened, { open, close }] = useDisclosure(false);
 
   const editor = useEditor({
-    extensions: [StarterKit, Link],
+    extensions: [
+      StarterKit.configure({
+       bulletList:{
+        HTMLAttributes: {
+          class: "bullet_class",
+          style: "padding-left: 15px;",
+         },
+       },
+       orderedList:{
+        HTMLAttributes: {
+          class: "order_class",
+          style: "padding-left: 15px;",
+         },
+       },
+       heading: {
+        HTMLAttributes: {
+          class: "headers_class",
+         },
+        },
+      }),
+      Link,
+      Highlight,
+      Underline,
+      SubScript,
+      Superscript,
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    ],
     content: '',
     immediatelyRender: false,
   });
@@ -210,6 +241,7 @@ export default function AdminPage() {
               <RichTextEditor.Underline />
               <RichTextEditor.Strikethrough />
               <RichTextEditor.ClearFormatting />
+              <RichTextEditor.Highlight />
               <RichTextEditor.Code />
             </RichTextEditor.ControlsGroup>
 
@@ -225,11 +257,25 @@ export default function AdminPage() {
               <RichTextEditor.Hr />
               <RichTextEditor.BulletList />
               <RichTextEditor.OrderedList />
+              <RichTextEditor.Subscript />
+              <RichTextEditor.Superscript />
             </RichTextEditor.ControlsGroup>
 
             <RichTextEditor.ControlsGroup>
               <RichTextEditor.Link />
               <RichTextEditor.Unlink />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.AlignLeft />
+              <RichTextEditor.AlignCenter />
+              <RichTextEditor.AlignJustify />
+              <RichTextEditor.AlignRight />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Undo />
+              <RichTextEditor.Redo />
             </RichTextEditor.ControlsGroup>
           </RichTextEditor.Toolbar>
 
