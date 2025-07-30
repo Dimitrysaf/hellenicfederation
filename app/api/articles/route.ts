@@ -1,7 +1,17 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { Article } from '../../../db/articles';
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
+
+const redisClient = createClient({ url: process.env.REDIS_URL });
+redisClient.on('error', err => console.log('Redis Client Error', err));
+
+async function connectRedis() {
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+}
+
 
 const ARTICLES_CACHE_KEY = 'all_articles';
 const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
@@ -9,7 +19,8 @@ const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 export async function GET() {
   try {
     // Try to fetch from cache first
-    const cachedArticles: Article[] | null = await kv.get(ARTICLES_CACHE_KEY);
+    await connectRedis();
+    const cachedArticles: Article[] | null = JSON.parse(await redisClient.get(ARTICLES_CACHE_KEY) || 'null');
     if (cachedArticles) {
       console.log('Serving articles from cache');
       return NextResponse.json(cachedArticles);
@@ -19,7 +30,7 @@ export async function GET() {
     const { rows } = await sql<Article>`SELECT * FROM articles ORDER BY number ASC;`;
     
     // Store in cache
-    await kv.set(ARTICLES_CACHE_KEY, rows, { ex: CACHE_TTL_SECONDS });
+    await redisClient.set(ARTICLES_CACHE_KEY, JSON.stringify(rows), { EX: CACHE_TTL_SECONDS });
     console.log('Serving articles from database and caching');
     
     return NextResponse.json(rows);
@@ -48,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Invalidate cache after successful update
-    await kv.del(ARTICLES_CACHE_KEY);
+    await redisClient.del(ARTICLES_CACHE_KEY);
     console.log('Articles updated and cache invalidated');
 
     return NextResponse.json({ message: 'Articles saved successfully' });

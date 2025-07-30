@@ -1,7 +1,17 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { FAQ } from '../../../db/faqs';
-import { kv } from '@vercel/kv';
+import { createClient } from 'redis';
+
+const redisClient = createClient({ url: process.env.REDIS_URL });
+redisClient.on('error', err => console.log('Redis Client Error', err));
+
+async function connectRedis() {
+  if (!redisClient.isOpen) {
+    await redisClient.connect();
+  }
+}
+
 
 const FAQS_CACHE_KEY = 'all_faqs';
 const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
@@ -9,7 +19,8 @@ const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 export async function GET() {
   try {
     // Try to fetch from cache first
-    const cachedFaqs: FAQ[] | null = await kv.get(FAQS_CACHE_KEY);
+    await connectRedis();
+    const cachedFaqs: FAQ[] | null = JSON.parse(await redisClient.get(FAQS_CACHE_KEY) || 'null');
     if (cachedFaqs) {
       console.log('Serving FAQs from cache');
       return NextResponse.json(cachedFaqs);
@@ -19,7 +30,7 @@ export async function GET() {
     const { rows } = await sql<FAQ>`SELECT * FROM faqs ORDER BY "order" ASC;`;
     
     // Store in cache
-    await kv.set(FAQS_CACHE_KEY, rows, { ex: CACHE_TTL_SECONDS });
+    await redisClient.set(FAQS_CACHE_KEY, JSON.stringify(rows), { EX: CACHE_TTL_SECONDS });
     console.log('Serving FAQs from database and caching');
     
     return NextResponse.json(rows);
@@ -48,7 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Invalidate cache after successful update
-    await kv.del(FAQS_CACHE_KEY);
+    await redisClient.del(FAQS_CACHE_KEY);
     console.log('FAQs updated and cache invalidated');
 
     return NextResponse.json({ message: 'FAQs saved successfully' });
