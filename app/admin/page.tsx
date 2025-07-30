@@ -41,7 +41,7 @@ export default function AdminPage() {
       close();
       router.refresh();
     } else {
-      setTwoFaError(data.message || 'Invalid 2FA code');
+      setTwoFaError(data.message || 'Άκυρος κωδικός');
     }
   };
 
@@ -53,16 +53,16 @@ export default function AdminPage() {
         withCloseButton={false}
         closeOnClickOutside={false}
         closeOnEscape={false}
-        title={<Title order={3}>Two-Factor Authentication</Title>}
+        title={<Title order={3}>Κωδικός πρόσβασης</Title>}
         centered
       >
-        <Text size="sm" mb="md">Please enter the 6-digit code from your authenticator app.</Text>
+        <Text size="sm" mb="md">Εισάγετε τον κωδικό πρόσβασής σας.</Text>
         <Center>
           <PinInput value={twoFaCode} onChange={setTwoFaCode} length={6} oneTimeCode={true} error={!!twoFaError} />
         </Center>
-        {twoFaError ? <Text color="red" size="sm" mt="sm" ta="center">{twoFaError}</Text> : null}
+        {twoFaError ? <Text c="red" size="sm" mt="sm" ta="center">{twoFaError}</Text> : null}
         <Group justify="center" mt="xl">
-          <Button onClick={handle2FaSubmit} disabled={twoFaCode.length !== 6}>Verify</Button>
+          <Button onClick={handle2FaSubmit} disabled={twoFaCode.length !== 6}>Επιβεβαίωση</Button>
         </Group>
       </Modal>
 
