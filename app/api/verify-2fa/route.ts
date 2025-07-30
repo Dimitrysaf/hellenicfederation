@@ -17,7 +17,8 @@ export async function POST(request: Request) {
 
   if (isValid) {
     // Set a secure, HTTP-only cookie to mark the session as authenticated
-    cookies().set('authenticated', 'true', {
+    const cookieStore = await cookies();
+    cookieStore.set('authenticated', 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       maxAge: 60 * 60, // 1 hour

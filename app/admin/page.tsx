@@ -58,10 +58,10 @@ export default function AdminPage() {
       >
         <Text size="sm" mb="md">Please enter the 6-digit code from your authenticator app.</Text>
         <Center>
-          <PinInput value={twoFaCode} onChange={setTwoFaCode} length={6} oneTimeCode={true} error={twoFaError} />
+          <PinInput value={twoFaCode} onChange={setTwoFaCode} length={6} oneTimeCode={true} error={!!twoFaError} />
         </Center>
-        {twoFaError && <Text color="red" size="sm" mt="sm" align="center">{twoFaError}</Text>}
-        <Group position="center" mt="xl">
+        {twoFaError ? <Text color="red" size="sm" mt="sm" ta="center">{twoFaError}</Text> : null}
+        <Group justify="center" mt="xl">
           <Button onClick={handle2FaSubmit} disabled={twoFaCode.length !== 6}>Verify</Button>
         </Group>
       </Modal>
