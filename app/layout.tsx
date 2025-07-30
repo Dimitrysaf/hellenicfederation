@@ -27,6 +27,7 @@ export default function RootLayout({ children }: { children: any }) {
       <body>
         <MantineProvider theme={theme}>
           <ModalsProvider>
+            <Analytics/>
             <HeaderSimple />
             {children}
           </ModalsProvider>
