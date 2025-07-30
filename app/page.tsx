@@ -50,18 +50,18 @@ export default function ConstitutionPage() {
             {articles.map((article) => (
               <div key={article.id}>
                 <Group style={{ alignItems: 'center' }} className={classes['article-heading-group']}>
+                  <CopyButton value={`${window.location.origin}${window.location.pathname}#${article.id}`} timeout={2000}>
+                    {({ copied, copy }) => (
+                      <ActionIcon color={copied ? 'teal' : 'gray'} variant="subtle" onClick={copy} className={classes['copy-button']}>
+                        {copied ? <IconCheck size={16} /> : <IconLink size={16} />}
+                      </ActionIcon>
+                    )}
+                  </CopyButton>
                   <Title order={3} id={article.id.toString()} style={{ scrollMarginTop: '56px' }}>
                     <a href={`#${article.id}`} style={{ color: 'inherit' }}>
                       Άρθρο {article.number} - {article.name}
                     </a>
                   </Title>
-                  <CopyButton value={`${window.location.origin}${window.location.pathname}#${article.id}`} timeout={2000}>
-                    {({ copied, copy }) => (
-                      <ActionIcon color={copied ? 'teal' : 'gray'} variant="subtle" onClick={copy}>
-                        {copied ? <IconCheck size={16} /> : <IconLink size={16} />}
-                      </ActionIcon>
-                    )}
-                  </CopyButton>
                 </Group>
                 <Text dangerouslySetInnerHTML={{ __html: article.content }} />
               </div>
