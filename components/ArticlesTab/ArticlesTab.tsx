@@ -15,6 +15,7 @@ import {
   Title,
   Skeleton,
   Stack,
+  LoadingOverlay,
 } from '@mantine/core';
 import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
@@ -36,6 +37,7 @@ export function ArticlesTab() {
   const [editedNumber, setEditedNumber] = useState<number | string>('');
   const [opened, { open, close }] = useDisclosure(false);
   const [loading, setLoading] = useState(true);
+  const [isSavingOrDeleting, setIsSavingOrDeleting] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -109,6 +111,7 @@ export function ArticlesTab() {
       ),
       labels: { confirm: 'Διαγραφή', cancel: 'Ακύρωση' },
       onConfirm: async () => {
+        setIsSavingOrDeleting(true);
         let updatedArticles = articles.filter((article) => article.id !== id);
         updatedArticles = updatedArticles
           .sort((a, b) => a.number - b.number)
@@ -136,12 +139,15 @@ export function ArticlesTab() {
             title: 'Σφάλμα',
             children: <Text size="sm">Προέκυψε σφάλμα κατά τη διαγραφή του άρθρου.</Text>,
           });
+        } finally {
+          setIsSavingOrDeleting(false);
         }
       },
     });
   };
 
   const handleSave = async () => {
+    setIsSavingOrDeleting(true);
     if (!editor) {
       return;
     }
@@ -215,6 +221,8 @@ export function ArticlesTab() {
         title: 'Σφάλμα',
         children: <Text size="sm">Προέκυψε σφάλμα κατά την αποθήκευση των άρθρων.</Text>,
       });
+    } finally {
+      setIsSavingOrDeleting(false);
     }
   };
 
@@ -268,6 +276,7 @@ export function ArticlesTab() {
         title={selectedArticle ? 'Επεξεργασία' : 'Προσθήκη'}
         size="xl"
       >
+        <LoadingOverlay visible={isSavingOrDeleting} />
         <TextInput
           label="Όμονα άρθρου"
           value={editedName}
