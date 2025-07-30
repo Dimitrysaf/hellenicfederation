@@ -1,0 +1,13 @@
+CREATE TABLE IF NOT EXISTS articles (
+    id VARCHAR(255) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    number INT NOT NULL,
+    content TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS faqs (
+    id VARCHAR(255) PRIMARY KEY,
+    question VARCHAR(255) NOT NULL,
+    answer TEXT NOT NULL,
+    "order" INT NOT NULL
+);

@@ -159,3 +159,6 @@ Thumbs.db
 *.crt
 *.p12
 *.jks
+
+.vercel
+.env*.local
