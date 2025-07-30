@@ -7,6 +7,7 @@ import { ModalsProvider } from '@mantine/modals';
 import { HeaderSimple } from '@/components/HeaderSimple/HeaderSimple';
 import { theme } from '@/theme';
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata = {
   title: 'Σύνταγμα',
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: any }) {
         <MantineProvider theme={theme}>
           <ModalsProvider>
             <Analytics/>
+            <SpeedInsights/>
             <HeaderSimple />
             {children}
           </ModalsProvider>
