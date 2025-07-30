@@ -26,6 +26,8 @@ import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
 import Superscript from '@tiptap/extension-superscript';
 import SubScript from '@tiptap/extension-subscript';
+import { OrderedListExtension } from './OrderedListExtension';
+
 
 export function ArticlesTab() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -44,12 +46,7 @@ export function ArticlesTab() {
           style: "padding-left: 15px;",
          },
        },
-       orderedList:{
-        HTMLAttributes: {
-          class: "order_class",
-          style: "padding-left: 15px;",
-         },
-       },
+       orderedList: false,
        heading: {
         HTMLAttributes: {
           class: "headers_class",
@@ -62,6 +59,7 @@ export function ArticlesTab() {
       SubScript,
       Superscript,
       TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      OrderedListExtension,
     ],
     content: '',
     immediatelyRender: false,
@@ -71,7 +69,7 @@ export function ArticlesTab() {
     fetch('/api/articles')
       .then((res) => res.json())
       .then((data) => {
-        console.log('Articles state on mount:', data);
+        
         setArticles(data.sort((a: Article, b: Article) => a.number - b.number));
       })
       .finally(() => {
@@ -133,7 +131,7 @@ export function ArticlesTab() {
           const updatedData = await fetch('/api/articles').then((res) => res.json());
           setArticles(updatedData.sort((a: Article, b: Article) => a.number - b.number));
         } catch (error) {
-          console.error('Error deleting article:', error);
+          
           modals.open({
             title: 'Σφάλμα',
             children: <Text size="sm">Προέκυψε σφάλμα κατά τη διαγραφή του άρθρου.</Text>,
@@ -174,7 +172,7 @@ export function ArticlesTab() {
       content: editor.getHTML(),
     };
 
-    let currentArticles = articles.filter((a) => a.id !== selectedArticle?.id);
+    const currentArticles = articles.filter((a) => a.id !== selectedArticle?.id);
 
     // Find the correct insertion index
     let insertIndex = currentArticles.findIndex(a => a.number >= newNumber);
@@ -191,7 +189,7 @@ export function ArticlesTab() {
       number: index + 1,
     }));
 
-    console.log('Final articles after renumbering:', finalArticles);
+    
 
     setArticles(finalArticles);
     try {
@@ -212,7 +210,7 @@ export function ArticlesTab() {
       close();
       setSelectedArticle(null);
     } catch (error) {
-      console.error('Error saving articles:', error);
+      
       modals.open({
         title: 'Σφάλμα',
         children: <Text size="sm">Προέκυψε σφάλμα κατά την αποθήκευση των άρθρων.</Text>,
