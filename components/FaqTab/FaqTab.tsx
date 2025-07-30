@@ -70,19 +70,35 @@ export function FaqTab() {
         </Text>
       ),
       labels: { confirm: 'Διαγραφή', cancel: 'Ακύρωση' },
-      onConfirm: () => {
+      onConfirm: async () => {
         let updatedFaqs = faqs.filter((faq) => faq.id !== id);
         updatedFaqs = updatedFaqs
           .sort((a, b) => a.order - b.order)
           .map((faq, index) => ({ ...faq, order: index + 1 }));
         setFaqs(updatedFaqs);
-        fetch('/api/faqs', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatedFaqs),
-        });
+        try {
+          const response = await fetch('/api/faqs', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedFaqs),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to delete FAQ');
+          }
+
+          // Re-fetch FAQs to ensure local state is in sync with the database
+          const updatedData = await fetch('/api/faqs').then((res) => res.json());
+          setFaqs(updatedData.sort((a: FAQ, b: FAQ) => a.order - b.order));
+        } catch (error) {
+          console.error('Error deleting FAQ:', error);
+          modals.open({
+            title: 'Σφάλμα',
+            children: <Text size="sm">Προέκυψε σφάλμα κατά τη διαγραφή της συχνής ερώτησης.</Text>,
+          });
+        }
       },
     });
   };
@@ -130,13 +146,30 @@ export function FaqTab() {
     }));
 
     setFaqs(finalFaqs);
-    fetch('/api/faqs', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(finalFaqs),
-    });
-    close();
-    setSelectedFaq(null);
+    try {
+      const response = await fetch('/api/faqs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalFaqs),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save FAQs');
+      }
+
+      // Re-fetch FAQs to ensure local state is in sync with the database
+      const updatedData = await fetch('/api/faqs').then((res) => res.json());
+      setFaqs(updatedData.sort((a: FAQ, b: FAQ) => a.order - b.order));
+
+      close();
+      setSelectedFaq(null);
+    } catch (error) {
+      console.error('Error saving FAQs:', error);
+      modals.open({
+        title: 'Σφάλμα',
+        children: <Text size="sm">Προέκυψε σφάλμα κατά την αποθήκευση των συχνών ερωτήσεων.</Text>,
+      });
+    }
   };
 
   const handleCloseModal = () => {

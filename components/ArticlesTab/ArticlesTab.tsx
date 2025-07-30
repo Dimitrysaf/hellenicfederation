@@ -110,19 +110,35 @@ export function ArticlesTab() {
         </Text>
       ),
       labels: { confirm: 'Διαγραφή', cancel: 'Ακύρωση' },
-      onConfirm: () => {
+      onConfirm: async () => {
         let updatedArticles = articles.filter((article) => article.id !== id);
         updatedArticles = updatedArticles
           .sort((a, b) => a.number - b.number)
           .map((article, index) => ({ ...article, number: index + 1 }));
         setArticles(updatedArticles);
-        fetch('/api/articles', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(updatedArticles),
-        });
+        try {
+          const response = await fetch('/api/articles', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updatedArticles),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to delete article');
+          }
+
+          // Re-fetch articles to ensure local state is in sync with the database
+          const updatedData = await fetch('/api/articles').then((res) => res.json());
+          setArticles(updatedData.sort((a: Article, b: Article) => a.number - b.number));
+        } catch (error) {
+          console.error('Error deleting article:', error);
+          modals.open({
+            title: 'Σφάλμα',
+            children: <Text size="sm">Προέκυψε σφάλμα κατά τη διαγραφή του άρθρου.</Text>,
+          });
+        }
       },
     });
   };
@@ -178,13 +194,30 @@ export function ArticlesTab() {
     console.log('Final articles after renumbering:', finalArticles);
 
     setArticles(finalArticles);
-    fetch('/api/articles', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(finalArticles),
-    });
-    close();
-    setSelectedArticle(null);
+    try {
+      const response = await fetch('/api/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(finalArticles),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save articles');
+      }
+
+      // Re-fetch articles to ensure local state is in sync with the database
+      const updatedData = await fetch('/api/articles').then((res) => res.json());
+      setArticles(updatedData.sort((a: Article, b: Article) => a.number - b.number));
+
+      close();
+      setSelectedArticle(null);
+    } catch (error) {
+      console.error('Error saving articles:', error);
+      modals.open({
+        title: 'Σφάλμα',
+        children: <Text size="sm">Προέκυψε σφάλμα κατά την αποθήκευση των άρθρων.</Text>,
+      });
+    }
   };
 
   const handleCloseModal = () => {
