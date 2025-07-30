@@ -1,10 +1,27 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { FAQ } from '../../../db/faqs';
+import { kv } from '@vercel/kv';
+
+const FAQS_CACHE_KEY = 'all_faqs';
+const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 
 export async function GET() {
   try {
+    // Try to fetch from cache first
+    const cachedFaqs: FAQ[] | null = await kv.get(FAQS_CACHE_KEY);
+    if (cachedFaqs) {
+      console.log('Serving FAQs from cache');
+      return NextResponse.json(cachedFaqs);
+    }
+
+    // If not in cache, fetch from database
     const { rows } = await sql<FAQ>`SELECT * FROM faqs ORDER BY "order" ASC;`;
+    
+    // Store in cache
+    await kv.set(FAQS_CACHE_KEY, rows, { ex: CACHE_TTL_SECONDS });
+    console.log('Serving FAQs from database and caching');
+    
     return NextResponse.json(rows);
   } catch (error) {
     console.error('Error fetching FAQs:', error);
@@ -29,6 +46,10 @@ export async function POST(request: Request) {
           "order" = EXCLUDED."order";
       `;
     }
+
+    // Invalidate cache after successful update
+    await kv.del(FAQS_CACHE_KEY);
+    console.log('FAQs updated and cache invalidated');
 
     return NextResponse.json({ message: 'FAQs saved successfully' });
   } catch (error) {

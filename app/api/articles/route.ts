@@ -1,10 +1,27 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { Article } from '../../../db/articles';
+import { kv } from '@vercel/kv';
+
+const ARTICLES_CACHE_KEY = 'all_articles';
+const CACHE_TTL_SECONDS = 60 * 60; // 1 hour
 
 export async function GET() {
   try {
+    // Try to fetch from cache first
+    const cachedArticles: Article[] | null = await kv.get(ARTICLES_CACHE_KEY);
+    if (cachedArticles) {
+      console.log('Serving articles from cache');
+      return NextResponse.json(cachedArticles);
+    }
+
+    // If not in cache, fetch from database
     const { rows } = await sql<Article>`SELECT * FROM articles ORDER BY number ASC;`;
+    
+    // Store in cache
+    await kv.set(ARTICLES_CACHE_KEY, rows, { ex: CACHE_TTL_SECONDS });
+    console.log('Serving articles from database and caching');
+    
     return NextResponse.json(rows);
   } catch (error) {
     console.error('Error fetching articles:', error);
@@ -29,6 +46,10 @@ export async function POST(request: Request) {
           content = EXCLUDED.content;
       `;
     }
+
+    // Invalidate cache after successful update
+    await kv.del(ARTICLES_CACHE_KEY);
+    console.log('Articles updated and cache invalidated');
 
     return NextResponse.json({ message: 'Articles saved successfully' });
   } catch (error) {
