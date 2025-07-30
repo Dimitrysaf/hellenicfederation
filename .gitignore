@@ -130,3 +130,32 @@ dist
 .pnp.*
 
 .DS_Store
+
+# Added by Gemini CLI for security/cleanup
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
+# Temporary files
+*.tmp
+*.bak
+*~
+
+# Credentials and sensitive files (should ideally not be in project dir)
+*.key
+*.pem
+*.crt
+*.p12
+*.jks
