@@ -1,17 +1,21 @@
 'use client';
 
-import { Card, Container, Title, Text, Stack } from '@mantine/core';
+import { Card, Container, Title, Text, Stack, Skeleton } from '@mantine/core';
 import { useEffect, useState } from 'react';
 import { Article } from '../db/articles';
 
 export default function ConstitutionPage() {
   const [articles, setArticles] = useState<Article[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch('/api/articles')
       .then((res) => res.json())
       .then((data) => {
         setArticles(data.sort((a: Article, b: Article) => a.number - b.number));
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
@@ -19,7 +23,7 @@ export default function ConstitutionPage() {
     <Container>
       <Title style={{ marginBottom: '2rem' }}><b>Σύνταγμα</b></Title>
       <Card shadow="sm" padding="lg" radius="md" withBorder style={{ marginBottom: '2rem' }}>
-        <Title order={2}><b><i>Προοίμιο</i></b></Title>
+        <Title order={2}><b>Προοίμιο</b></Title>
         <Text>
           <b><i>Επικαλούμενοι τη βούληση του Ελληνικού Λαού και των συνιστωσών αυτού Περιφερειών,</i><br></br>
           Επιβεβαιώνοντες απαρασάλευτα τας δημοκρατικάς αρχάς, την ανθρώπινην αξιοπρέπειαν, την ελευθερίαν, την δικαιοσύνην, την αλληλεγγύην, την
@@ -31,14 +35,26 @@ export default function ConstitutionPage() {
           αναδημιουργούσι το παρόν Σύνταγμα</i>:</b>
         </Text>
       </Card>
-      <Stack>
-        {articles.map((article) => (
-          <div key={article.id}>
-            <Title order={2}>Άρθρο {article.number} - {article.name}</Title>
-            <Text dangerouslySetInnerHTML={{ __html: article.content }} />
-          </div>
-        ))}
-      </Stack>
+      {loading ? (
+        <Stack>
+          <Skeleton height={60} radius="sm" mb="md" />
+          <Skeleton height={20} radius="sm" mb="xs" />
+          <Skeleton height={20} radius="sm" mb="xs" />
+          <Skeleton height={20} radius="sm" mb="xs" />
+          <Skeleton height={60} radius="sm" mb="md" />
+          <Skeleton height={20} radius="sm" mb="xs" />
+          <Skeleton height={20} radius="sm" mb="xs" />
+        </Stack>
+      ) : (
+        <Stack>
+          {articles.map((article) => (
+            <div key={article.id}>
+              <Title order={3}>Άρθρο {article.number} - {article.name}</Title>
+              <Text dangerouslySetInnerHTML={{ __html: article.content }} />
+            </div>
+          ))}
+        </Stack>
+      )}
     </Container>
   );
 }

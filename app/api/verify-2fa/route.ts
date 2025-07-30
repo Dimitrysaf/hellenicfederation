@@ -1,0 +1,30 @@
+import { NextResponse } from 'next/server';
+import { authenticator } from 'otplib';
+import { cookies } from 'next/headers';
+
+export async function POST(request: Request) {
+  const { code } = await request.json();
+  const secret = process.env.TWO_FACTOR_AUTH_SECRET;
+
+  console.log('Received code:', code);
+  console.log('Using secret:', secret);
+
+  if (!secret) {
+    return NextResponse.json({ message: '2FA secret not configured' }, { status: 500 });
+  }
+
+  const isValid = authenticator.check(code, secret);
+
+  if (isValid) {
+    // Set a secure, HTTP-only cookie to mark the session as authenticated
+    cookies().set('authenticated', 'true', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 60 * 60, // 1 hour
+      path: '/',
+    });
+    return NextResponse.json({ message: '2FA code valid' });
+  } else {
+    return NextResponse.json({ message: 'Invalid 2FA code' }, { status: 401 });
+  }
+}

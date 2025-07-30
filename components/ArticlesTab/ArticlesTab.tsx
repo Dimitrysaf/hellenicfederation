@@ -13,6 +13,8 @@ import {
   Text,
   TextInput,
   Title,
+  Skeleton,
+  Stack,
 } from '@mantine/core';
 import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
@@ -31,6 +33,7 @@ export function ArticlesTab() {
   const [editedName, setEditedName] = useState('');
   const [editedNumber, setEditedNumber] = useState<number | string>('');
   const [opened, { open, close }] = useDisclosure(false);
+  const [loading, setLoading] = useState(true);
 
   const editor = useEditor({
     extensions: [
@@ -70,6 +73,9 @@ export function ArticlesTab() {
       .then((data) => {
         console.log('Articles state on mount:', data);
         setArticles(data.sort((a: Article, b: Article) => a.number - b.number));
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, []);
 
@@ -205,16 +211,25 @@ export function ArticlesTab() {
         <Title><b>Πίνακας άρθρων</b></Title>
         <Button onClick={handleAdd}><IconPlus size={14}/></Button>
       </Group>
-      <Table>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th style={{ width: '1%' }}>Α/A</Table.Th>
-            <Table.Th>Όνομα</Table.Th>
-            <Table.Th style={{ width: '14%' }}>Ενέργειες</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>{rows}</Table.Tbody>
-      </Table>
+      {loading ? (
+        <Stack>
+          <Skeleton height={40} radius="sm" />
+          <Skeleton height={40} radius="sm" />
+          <Skeleton height={40} radius="sm" />
+          <Skeleton height={40} radius="sm" />
+        </Stack>
+      ) : (
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th style={{ width: '1%' }}>Α/A</Table.Th>
+              <Table.Th>Όνομα</Table.Th>
+              <Table.Th style={{ width: '14%' }}>Ενέργειες</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>{rows}</Table.Tbody>
+        </Table>
+      )}
 
       <Modal
         opened={opened}
