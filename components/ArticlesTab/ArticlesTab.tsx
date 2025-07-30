@@ -20,7 +20,7 @@ import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { Link, RichTextEditor } from '@mantine/tiptap';
-import { Article } from '../../db/articles';
+import { Article } from '@/db/articles';
 import Highlight from '@tiptap/extension-highlight';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';

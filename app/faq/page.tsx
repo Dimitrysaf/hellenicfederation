@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Accordion, Container, Title, Text, Skeleton, Stack } from '@mantine/core';
-import { FAQ } from '../../db/faqs';
+import { FAQ } from '@/db/faqs';
 
 export default function FaqPage() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);

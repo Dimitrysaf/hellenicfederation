@@ -4,8 +4,8 @@ import '@mantine/tiptap/styles.css';
 import React from 'react';
 import { ColorSchemeScript, mantineHtmlProps, MantineProvider } from '@mantine/core';
 import { ModalsProvider } from '@mantine/modals';
-import { HeaderSimple } from '../components/HeaderSimple/HeaderSimple';
-import { theme } from '../theme';
+import { HeaderSimple } from '@/components/HeaderSimple/HeaderSimple';
+import { theme } from '@/theme';
 
 export const metadata = {
   title: 'Σύνταγμα',

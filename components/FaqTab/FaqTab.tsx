@@ -17,7 +17,7 @@ import {
 import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
 import { useDisclosure } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
-import { FAQ } from '../../db/faqs';
+import { FAQ } from '@/db/faqs';
 
 export function FaqTab() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);

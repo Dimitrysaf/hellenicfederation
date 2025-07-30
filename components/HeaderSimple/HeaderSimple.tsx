@@ -5,10 +5,9 @@ import Link from 'next/link';
 import { Burger, Container, Drawer, Group, Stack } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { MantineLogo } from '@mantinex/mantine-logo';
-import { Logo } from '../Logo/Logo';
+import { Logo } from '@/components/Logo/Logo';
 import classes from './HeaderSimple.module.css';
-
-import { ColorSchemeToggle } from '../ColorSchemeToggle/ColorSchemeToggle';
+import { ColorSchemeToggle } from '@/components/ColorSchemeToggle/ColorSchemeToggle';
 
 const links = [
   { link: '/', label: 'Σύνταγμα' },

@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Tabs, Container, Group, Title, Modal, PinInput, Button, Text, Center } from '@mantine/core';
-import { ArticlesTab } from '../../components/ArticlesTab/ArticlesTab';
-import { FaqTab } from '../../components/FaqTab/FaqTab';
+import { ArticlesTab } from '@/components/ArticlesTab/ArticlesTab';
+import { FaqTab } from '@/components/FaqTab/FaqTab';
 import { useRouter } from 'next/navigation';
 import { useDisclosure } from '@mantine/hooks';
 
