@@ -103,7 +103,7 @@ export function FaqTab() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newOrder = typeof editedOrder === 'string' ? parseInt(editedOrder, 10) : editedOrder;
     const newQuestion = editedQuestion.trim();
     const newAnswer = editedAnswer.trim();

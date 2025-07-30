@@ -143,7 +143,7 @@ export function ArticlesTab() {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editor) {
       return;
     }
