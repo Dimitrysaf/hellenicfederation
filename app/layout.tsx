@@ -6,6 +6,7 @@ import { ColorSchemeScript, mantineHtmlProps, MantineProvider } from '@mantine/c
 import { ModalsProvider } from '@mantine/modals';
 import { HeaderSimple } from '@/components/HeaderSimple/HeaderSimple';
 import { theme } from '@/theme';
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: 'Σύνταγμα',
