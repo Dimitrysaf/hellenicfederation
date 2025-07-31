@@ -27,6 +27,7 @@ export async function GET() {
     }
 
     // If not in cache, fetch from database
+    await sql`SET client_encoding = 'UTF8';`;
     const { rows } = await sql<Article>`SELECT * FROM articles ORDER BY number ASC;`;
     
     // Store in cache
