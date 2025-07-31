@@ -59,8 +59,10 @@
     "qrcode": "^1.5.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "react-markdown": "^10.1.0",
     "recharts": "^3.1.0",
-    "redis": "^5.6.1"
+    "redis": "^5.6.1",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@babel/core": "^7.27.4",

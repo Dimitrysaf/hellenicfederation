@@ -13,6 +13,7 @@ const links = [
   { link: '/', label: 'Σύνταγμα' },
   { link: '/faq', label: 'Ερωτήσεις' },
   { link: '/about', label: 'Σχετικά' },
+  { link: '/comments', label: 'Σχόλια' },
 ];
 
 export function HeaderSimple() {
