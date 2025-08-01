@@ -10,8 +10,8 @@ import { Analytics } from "@vercel/analytics/next"
 import { SpeedInsights } from "@vercel/speed-insights/next"
 
 export const metadata = {
-  title: 'Σύνταγμα',
-  description: 'Φτιάχνωντας το Σύνταγμα της Ελλάδος με την Άμεση Δημοκρατία!',
+  title: 'Ελληνικές Ομοσπονδίες',
+  description: 'Πλατφόρμα για την ανάπτυξη και διαχείριση του Συντάγματος των Ελληνικών Ομοσπονδιών.',
 };
 
 export default function RootLayout({ children }: { children: any }) {

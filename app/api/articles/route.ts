@@ -66,6 +66,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Articles saved successfully' });
   } catch (error) {
     console.error('Error saving articles:', error);
-    return NextResponse.json({ message: 'Error saving articles' }, { status: 500 });
+    return NextResponse.json({ message: 'Σφάλμα αποθήκευσης άρθρων' }, { status: 500 });
   }
 }

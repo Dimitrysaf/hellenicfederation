@@ -30,7 +30,7 @@ export default function FaqPage() {
 
   return (
     <Container>
-      <Title style={{ marginBottom: '2rem' }}><b>Ερωτήσεις & Απαντήσεις</b></Title>
+      <Title style={{ marginBottom: '2rem' }}><b>Συχνές Ερωτήσεις</b></Title>
       {loading ? (
         <Stack>
           <Skeleton height={40} radius="sm" mb="md" />

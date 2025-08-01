@@ -20,6 +20,7 @@ import {
 import { IconTrash, IconPinned, IconPinnedOff, IconEye, IconSearch, IconCopy, IconCheck } from '@tabler/icons-react';
 import { useDebouncedValue } from '@mantine/hooks';
 import ErrorDisplay from '../ErrorDisplay/ErrorDisplay';
+import { modals } from '@mantine/modals';
 
 interface Comment {
   id: string;
@@ -51,7 +52,7 @@ export const CommentsTab: React.FC = () => {
     try {
       const response = await fetch(`/api/comments`);
       if (!response.ok) {
-        throw new Error('Failed to fetch comments');
+        throw new Error('Αποτυχεία λήψης σχολίων');
       }
       const data = await response.json();
       const commentsWithScore = data.comments.map((comment: Comment) => ({
@@ -77,19 +78,28 @@ export const CommentsTab: React.FC = () => {
   }, [debouncedSearchQuery]); // Re-fetch when debounced search query changes
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this comment?')) {
-      try {
-        const response = await fetch(`/api/comments?id=${id}`, {
-          method: 'DELETE',
-        });
-        if (!response.ok) {
-          throw new Error('Failed to delete comment');
+    modals.openConfirmModal({
+      title: 'Διαγραφή Σχολίου',
+      children: (
+        <Text size="sm">
+          Είστε σίγουροι ότι θέλετε να διαγράψετε αυτό το σχόλιο; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.
+        </Text>
+      ),
+      labels: { confirm: 'Διαγραφή', cancel: 'Ακύρωση' },
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`/api/comments?id=${id}`, {
+            method: 'DELETE',
+          });
+          if (!response.ok) {
+            throw new Error('Αποτυχεία διαγραφής');
+          }
+          fetchComments(); // Refresh the list
+        } catch (err: any) {
+          setError(err.message);
         }
-        fetchComments(); // Refresh the list
-      } catch (err: any) {
-        setError(err.message);
-      }
-    }
+      },
+    });
   };
 
   const handlePin = async (id: string, currentPinnedStatus: boolean) => {
@@ -102,7 +112,7 @@ export const CommentsTab: React.FC = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${action} comment`);
+        throw new Error(`Αποτυχεία ${action} σχόλιο`);
       }
       fetchComments(); // Refresh the list
     } catch (err: any) {
@@ -125,7 +135,7 @@ export const CommentsTab: React.FC = () => {
       <Table.Td visibleFrom="sm">
         <CopyButton value={comment.id} timeout={2000}>
           {({ copied, copy }) => (
-            <Tooltip label={copied ? 'Copied' : 'Copy ID'} withArrow position="right">
+            <Tooltip label={copied ? 'Αντιγράφηκε' : 'Αντιγραφή ID'} withArrow position="right">
               <ActionIcon color={copied ? 'teal' : 'gray'} variant="subtle" onClick={copy}>
                 {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
               </ActionIcon>
@@ -140,18 +150,18 @@ export const CommentsTab: React.FC = () => {
       <Table.Td visibleFrom="sm">{comment.score}</Table.Td>
       <Table.Td>
         <Group gap="xs" wrap="nowrap">
-          <ActionIcon variant="light" color="blue" onClick={() => handleView(comment.id)} title="View Comment">
+          <ActionIcon variant="light" color="blue" onClick={() => handleView(comment.id)} title="Προβολή σχολίου">
             <IconEye size={16} />
           </ActionIcon>
           <ActionIcon
             variant="light"
             color={comment.pinned ? 'yellow' : 'gray'}
             onClick={() => handlePin(comment.id, comment.pinned)}
-            title={comment.pinned ? 'Unpin Comment' : 'Pin Comment'}
+            title={comment.pinned ? 'Ξεκαρφίτσωμα' : 'Καρφίτσωμα'}
           >
             {comment.pinned ? <IconPinnedOff size={16} /> : <IconPinned size={16} />}
           </ActionIcon>
-          <ActionIcon variant="light" color="red" onClick={() => handleDelete(comment.id)} title="Delete Comment">
+          <ActionIcon variant="light" color="red" onClick={() => handleDelete(comment.id)} title="Διαγραφή">
             <IconTrash size={16} />
           </ActionIcon>
         </Group>
@@ -162,10 +172,10 @@ export const CommentsTab: React.FC = () => {
   return (
     <Box>
       <Flex justify="space-between" align="center" mb="md">
-        <Text fz="lg" fw={700}>Manage Comments</Text>
+        <Text fz="lg" fw={700}>Διαχείριση σχολίων</Text>
         <SimpleGrid cols={1}>
         <TextInput
-          placeholder="Search comments..."
+          placeholder="Αναζήτηση..."
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.currentTarget.value)}
           leftSection={<IconSearch size={16} />}
@@ -181,7 +191,7 @@ export const CommentsTab: React.FC = () => {
         <ErrorDisplay message={error} />
       ) : comments.length === 0 ? (
         <Center style={{ height: 200 }}>
-          <Text>No comments found.</Text>
+          <Text>Δεν βρέθηκαν σχόλια.</Text>
         </Center>
       ) : (
         <>
@@ -189,10 +199,10 @@ export const CommentsTab: React.FC = () => {
             <Table.Thead>
               <Table.Tr>
                 <Table.Th style={{ width: '0%' }} visibleFrom="sm">ID</Table.Th>
-                <Table.Th style={{ width: '15%' }}>Username</Table.Th>
-                <Table.Th style={{ width: '50%' }}>Comment</Table.Th>
-                <Table.Th style={{ width: '0%' }} visibleFrom="sm">Votes</Table.Th>
-                <Table.Th style={{ width: '0%' }}>Actions</Table.Th>
+                <Table.Th style={{ width: '15%' }}>Όνομα</Table.Th>
+                <Table.Th style={{ width: '50%' }}>Σχόλιο</Table.Th>
+                <Table.Th style={{ width: '0%' }} visibleFrom="sm">Ψήφοι</Table.Th>
+                <Table.Th style={{ width: '0%' }}>Ενέργειες</Table.Th>
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>{rows}</Table.Tbody>

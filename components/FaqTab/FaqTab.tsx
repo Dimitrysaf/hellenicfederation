@@ -218,7 +218,7 @@ export function FaqTab() {
       <Table.Td visibleFrom="sm">
         <CopyButton value={faq.id} timeout={2000}>
           {({ copied, copy }) => (
-            <Tooltip label={copied ? 'Copied' : 'Copy ID'} withArrow position="right">
+            <Tooltip label={copied ? 'Αντιγράφηκε' : 'Αντιγραφή ID'} withArrow position="right">
               <ActionIcon color={copied ? 'teal' : 'gray'} variant="subtle" onClick={copy}>
                 {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
               </ActionIcon>
@@ -233,10 +233,10 @@ export function FaqTab() {
       </Table.Td>
       <Table.Td>
         <Group gap="xs" wrap="nowrap">
-          <ActionIcon variant="light" color="blue" onClick={() => handleEdit(faq)} title="Edit FAQ">
+          <ActionIcon variant="light" color="blue" onClick={() => handleEdit(faq)} title="Επεξεργασία FAQ">
             <IconEdit size={16} />
           </ActionIcon>
-          <ActionIcon variant="light" color="red" onClick={() => handleDelete(faq.id)} title="Delete FAQ">
+          <ActionIcon variant="light" color="red" onClick={() => handleDelete(faq.id)} title="Διαγραφή FAQ">
             <IconTrash size={16} />
           </ActionIcon>
         </Group>
@@ -247,15 +247,15 @@ export function FaqTab() {
   return (
     <Box>
       <Flex justify="space-between" align="center" mb="md">
-        <Text fz="lg" fw={700}>Manage FAQs</Text>
+        <Text fz="lg" fw={700}>Διαχείριση ερωτήσεων</Text>
         <SimpleGrid cols={2}>
           <TextInput
-            placeholder="Search FAQs..."
+            placeholder="Αναζήτηση FAQs..."
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.currentTarget.value)}
             leftSection={<IconSearch size={16} />}
           />
-          <Button onClick={handleAdd} leftSection={<IconPlus size={14} />}>Add FAQ</Button>
+          <Button onClick={handleAdd} leftSection={<IconPlus size={14} />}>Προσθήκη Ερώτησης</Button>
         </SimpleGrid>
       </Flex>
 

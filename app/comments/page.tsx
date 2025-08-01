@@ -279,7 +279,7 @@ const CommentsPage = () => {
         body: JSON.stringify({ username, comment, parent_id: replyingToCommentId }),
       });
       if (!response.ok) {
-        throw new Error('Failed to post comment');
+        throw new Error('Αποτυχία δημοσίευσης σχολίου');
       }
       const data = await response.json();
       if (data.comment) {
@@ -292,13 +292,13 @@ const CommentsPage = () => {
         setReplyingToCommentId(null);
         setReplyingToUsername(null);
       } else {
-        throw new Error('Invalid response from server');
+        throw new Error('Άκυρη απάντηση απάντηση από τον διακομιστή');
       }
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unknown error occurred');
+        setError('Άγνωστο σφάλμα');
       }
     }
   };
@@ -313,7 +313,7 @@ const CommentsPage = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to ${action} comment`);
+        throw new Error(`Αποτυχεία ${action} σχόλιο`);
       }
 
       // Re-fetch comments to get the updated pinned status and order
@@ -322,7 +322,7 @@ const CommentsPage = () => {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError('An unknown error occurred');
+        setError('Άγνωστο σφάλμα');
       }
     }
   };
@@ -330,49 +330,49 @@ const CommentsPage = () => {
   return (
     <Container size="md" py="lg">
       <Title order={1} mb="lg">
-        Comments
+        Σχόλια
       </Title>
       <Stack>
         <Card withBorder radius="md" p="lg" pos="relative">
           <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
-          <Title order={2} mb="md">Leave a Comment</Title>
+          <Title order={2} mb="md">Αφήστε ένα σχόλιο</Title>
           <form onSubmit={handleSubmit}>
             <Stack>
               {replyingToUsername && (
-                <Text size="sm" c="dimmed">Replying to: {replyingToUsername} <Button variant="subtle" size="xs" onClick={() => { setReplyingToCommentId(null); setReplyingToUsername(null); }}>Cancel</Button></Text>
+                <Text size="sm" c="dimmed">Απάντηση σε: {replyingToUsername} <Button variant="subtle" size="xs" onClick={() => { setReplyingToCommentId(null); setReplyingToUsername(null); }}>Ακύρωση</Button></Text>
               )}
               <TextInput
-                label="Username"
-                placeholder="Your username"
+                label="Όνομα"
+                placeholder="Το όνομά σας"
                 value={username}
                 onChange={(e) => setUsername(e.currentTarget.value)}
                 required
               />
               <Group>
-                <Button size="xs" onClick={() => applyMarkdown('**', 'bold text')} leftSection={<IconBold size={14} />}>Bold</Button>
-                <Button size="xs" onClick={() => applyMarkdown('*', 'italic text')} leftSection={<IconItalic size={14} />}>Italic</Button>
-                <Button size="xs" onClick={() => setIsLinkModalOpen(true)} leftSection={<IconLink size={14} />}>Link</Button>
+                <Button size="xs" onClick={() => applyMarkdown('**', 'bold text')} leftSection={<IconBold size={14} />}>Έντονα</Button>
+                <Button size="xs" onClick={() => applyMarkdown('*', 'italic text')} leftSection={<IconItalic size={14} />}>Λιγιστά</Button>
+                <Button size="xs" onClick={() => setIsLinkModalOpen(true)} leftSection={<IconLink size={14} />}>Σύνδεσμος</Button>
               </Group>
-              <Modal opened={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)} title="Insert Link">
+              <Modal opened={isLinkModalOpen} onClose={() => setIsLinkModalOpen(false)} title="Εισαγωγή συνδέσμου">
                 <TextInput
-                  label="Link Text"
-                  placeholder="Text to display"
+                  label="Κείμενο συνδέσμου"
+                  placeholder="Κείμενο που θα εμφανίζεται"
                   value={linkText}
                   onChange={(event) => setLinkText(event.currentTarget.value)}
                   mb="xs"
                 />
                 <TextInput
-                  label="URL"
+                  label="Σύνδεσμος"
                   placeholder="https://example.com"
                   value={linkUrl}
                   onChange={(event) => setLinkUrl(event.currentTarget.value)}
                   mb="md"
                 />
-                <Button onClick={handleInsertLink}>Insert Link</Button>
+                <Button onClick={handleInsertLink}>Εισαγωγή</Button>
               </Modal>
               <Textarea
-                label="Comment"
-                placeholder="Your comment"
+                label="Σχόλιο"
+                placeholder="Το σχόλιό σας"
                 value={comment}
                 onChange={(e) => setComment(e.currentTarget.value)}
                 required
@@ -380,7 +380,7 @@ const CommentsPage = () => {
                 autosize
                 name="comment" // Added name attribute for easier selection
               />
-              <Button type="submit" mt="md">Post Comment</Button>
+              <Button type="submit" mt="md">Δημοσίευση Σχολίου</Button>
             </Stack>
           </form>
         </Card>
@@ -390,8 +390,8 @@ const CommentsPage = () => {
           <Select
             placeholder={`Sort by: ${sortBy === 'created_at' ? 'Date' : 'Votes'}`}
             data={[
-              { value: 'created_at', label: 'Date' },
-              { value: 'score', label: 'Votes' },
+              { value: 'created_at', label: 'Ημερομηνία' },
+              { value: 'score', label: 'Ψήφοι' },
             ]}
             value={sortBy}
             onChange={(value) => setSortBy(value as 'created_at' | 'score')}
@@ -404,7 +404,7 @@ const CommentsPage = () => {
             setTimeout(() => {
               setIsRefreshingOnCooldown(false);
             }, 2500);
-          }} leftSection={<IconRefresh size={14} />} variant="default" size="sm" disabled={loading || isRefreshingOnCooldown}>Refresh</Button>
+          }} leftSection={<IconRefresh size={14} />} variant="default" size="sm" disabled={loading || isRefreshingOnCooldown}>Ανανέωση</Button>
         </Group>
         <Stack mt="lg">
           {loading ? (
@@ -418,7 +418,7 @@ const CommentsPage = () => {
               <CommentCard key={comment.id} {...comment} onVote={handleVote} allUserVotes={userVotes} onReply={handleReply} onPin={handlePin} depth={comment.depth} highlightedCommentId={highlightedCommentId} />
             ))
           ) : (
-            <Text>No comments yet. Be the first to comment!</Text>
+            <Text>Δεν υπάρχουν σχόλια ακόμα. Γίνετε ο πρώτος που θα σχολιάσει!</Text>
           )}
         </Stack>
       </Stack>

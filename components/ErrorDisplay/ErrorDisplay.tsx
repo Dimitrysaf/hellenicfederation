@@ -11,7 +11,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ message }) => {
       <Card withBorder radius="md" p="lg" shadow="sm">
         <Stack align="center">
           <Text style={{ fontSize: '3rem' }}>😢</Text>
-          <Text color="red" size="lg" ta="center">Error: {message}</Text>
+          <Text color="red" size="lg" ta="center">Σφάλμα: {message}</Text>
         </Stack>
       </Card>
     </Center>

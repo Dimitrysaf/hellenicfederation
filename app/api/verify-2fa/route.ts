@@ -26,6 +26,6 @@ export async function POST(request: Request) {
     });
     return NextResponse.json({ message: '2FA code valid' });
   } else {
-    return NextResponse.json({ message: 'Invalid 2FA code' }, { status: 401 });
+    return NextResponse.json({ message: 'Μη έγκυρος κωδικός 2FA' }, { status: 401 });
   }
 }

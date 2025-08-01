@@ -20,6 +20,6 @@ export async function GET(request: NextRequest) {
     if (error instanceof Error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json({ error: 'Εσωτερικό σφάλμα διακομιστή' }, { status: 500 });
   }
 }

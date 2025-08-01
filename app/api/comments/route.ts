@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
   const { username, comment, parent_id } = await request.json();
 
   if (!username || !comment) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json({ error: 'Λείπουν απαιτούμενα πεδία' }, { status: 400 });
   }
 
   const REPLY_LIMIT = 5;
@@ -73,7 +73,7 @@ export async function PUT(request: NextRequest) {
   const { action } = await request.json();
 
   if (!comment_id || !action) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json({ error: 'Λείπουν απαιτούμενα πεδία' }, { status: 400 });
   }
 
   let query;
@@ -124,7 +124,7 @@ export async function DELETE(request: NextRequest) {
 
   try {
     await sql`DELETE FROM comments WHERE id = ${id}`;
-    return NextResponse.json({ message: 'Comment deleted successfully' });
+    return NextResponse.json({ message: 'Το σχόλιο διαγράφηκε επιτυχώς' });
   } catch (error) {
     console.error('Error deleting comment:', error);
     if (error instanceof Error) {

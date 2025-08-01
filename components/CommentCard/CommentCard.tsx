@@ -44,7 +44,7 @@ const CommentCard: React.FC<CommentCardProps> = ({ id, username, comment, score,
   return (
     <div id={id} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--mantine-spacing-xs)', marginBlock: 'var(--mantine-spacing-sm)', scrollMarginTop: '56px' }}>
       <Card withBorder radius="md" p="md" style={id === highlightedCommentId ? { border: '2px solid var(--mantine-color-blue-filled)' } : {}}>
-        <Text fw={500}>{username} <Text span size="sm" c="dimmed">• {formattedDate}{pinned && ' • Pinned'}</Text></Text>
+        <Text fw={500}>{username} <Text span size="sm" c="dimmed">• {formattedDate}{pinned && ' • Καρφιτσωμένο'}</Text></Text>
         <Text size="sm" c="dimmed" mt={4} component="div" style={{ whiteSpace: 'pre-wrap', overflowWrap: 'break-word' }}>
           <ReactMarkdown remarkPlugins={[remarkGfm]} unwrapDisallowed={true}>
             {comment}
@@ -63,11 +63,11 @@ const CommentCard: React.FC<CommentCardProps> = ({ id, username, comment, score,
             </ActionIcon>
           </Group>
           <Button variant="subtle" size="xs" leftSection={<IconMessageCircle size={14} />} onClick={() => onReply(id, username)} disabled={depth >= 4}>
-            Reply
+            Απάντηση
           </Button>
           <CopyButton value={`${window.location.origin}/comments#${id}`} timeout={2000}>
             {({ copied, copy }) => (
-              <Tooltip label={copied ? 'Copied' : 'Copy link'} withArrow position="right">
+              <Tooltip label={copied ? 'Αντιγράφηκε' : 'Αντιγραφή συνδέσμου'} withArrow position="right">
                 <ActionIcon color={copied ? 'teal' : 'blue'} variant="subtle" onClick={copy}>
                   {copied ? <IconCheck size={16} /> : <IconLink size={16} />}
               </ActionIcon>
@@ -76,7 +76,7 @@ const CommentCard: React.FC<CommentCardProps> = ({ id, username, comment, score,
           </CopyButton>
           {children.length > 0 && (
             <Button variant="subtle" size="xs" onClick={() => setShowReplies(!showReplies)} leftSection={showReplies ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}>
-              {showReplies ? 'Hide' : `Show ${children.length}`} replies
+              {showReplies ? 'Απόκρυψη' : `Εμφάνιση ${children.length}`} απαντήσεων
             </Button>
           )}
         </Group>
@@ -96,7 +96,7 @@ const CommentCard: React.FC<CommentCardProps> = ({ id, username, comment, score,
           ))}
           {children.length > REPLY_LIMIT && !showAllReplies && (
             <Button variant="subtle" size="xs" onClick={() => setShowAllReplies(true)}>
-              Show {children.length - REPLY_LIMIT} more replies
+              Εμφάνιση {children.length - REPLY_LIMIT} ακόμη απαντήσεων
             </Button>
           )}
         </div>

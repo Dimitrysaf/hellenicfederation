@@ -75,7 +75,7 @@ export default function AdminPage() {
         <Tabs defaultValue="articles">
           <Tabs.List>
             <Tabs.Tab value="articles">Άρθρα</Tabs.Tab>
-            <Tabs.Tab value="faqs">Ερωτήσεις</Tabs.Tab>
+            <Tabs.Tab value="faqs">Συχνές Ερωτήσεις</Tabs.Tab>
             <Tabs.Tab value="comments">Σχόλια</Tabs.Tab>
           </Tabs.List>
 
