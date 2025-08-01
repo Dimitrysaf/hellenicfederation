@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Container, Title, Stack, Card, TextInput, Textarea, Button, Text, Group, Modal, Select, Divider } from '@mantine/core';
+import { Container, Title, Stack, Card, TextInput, Textarea, Button, Text, Group, Modal, Select, Divider, Skeleton, LoadingOverlay } from '@mantine/core';
 import CommentCard from '../../components/CommentCard/CommentCard';
-import { IconBold, IconItalic, IconLink } from '@tabler/icons-react';
+import { IconBold, IconItalic, IconLink, IconRefresh } from '@tabler/icons-react';
 
 // --- Main Comments Page ---
 interface Comment {
@@ -14,6 +14,7 @@ interface Comment {
   parent_id?: string | null;
   score: number;
   depth: number;
+  pinned: boolean;
 }
 
 interface CommentNode extends Comment {
@@ -92,6 +93,10 @@ const CommentsPage = () => {
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [sortBy, setSortBy] = useState<'created_at' | 'score'>('created_at'); // Default sort by date
   const [sortedComments, setSortedComments] = useState<CommentNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isRefreshingOnCooldown, setIsRefreshingOnCooldown] = useState(false);
+  const [highlightedCommentId, setHighlightedCommentId] = useState<string | null>(null);
+  const [scrollAttempted, setScrollAttempted] = useState(false);
 
   useEffect(() => {
     const sortComments = (commentsToSort: CommentNode[]): CommentNode[] => {
@@ -165,23 +170,52 @@ const CommentsPage = () => {
     localStorage.setItem('userVotes', JSON.stringify(userVotes));
   }, [userVotes]);
 
-  useEffect(() => {
-    const fetchComments = async () => {
-      try {
-        const response = await fetch(`/api/comments`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch comments');
-        }
-        const data = await response.json();
-        console.log('Fetched comments data:', data.comments);
-        setComments(buildCommentTree(data.comments || []));
-      } catch (err) {
-        setError(err.message);
-        setComments([]);
+  const fetchComments = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch(`/api/comments`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch comments');
       }
-    };
+      const data = await response.json();
+      console.log('Fetched comments data:', data.comments);
+      setComments(buildCommentTree(data.comments || []));
+    } catch (err) {
+      setError(err.message);
+      setComments([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchComments();
   }, []);
+
+  useEffect(() => {
+    if (!loading && sortedComments.length > 0 && !scrollAttempted) { // Ensure comments are loaded and rendered before attempting to scroll
+      const commentId = window.location.hash.substring(1); // Remove the #
+      if (commentId) {
+        setHighlightedCommentId(commentId);
+        const element = document.getElementById(commentId);
+        if (element) {
+          const scroll = () => {
+            // Check if the element is connected to the DOM and has a non-zero height
+            if (element.isConnected && element.offsetHeight > 0) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              setScrollAttempted(true); // Mark as attempted to prevent re-scrolling
+            } else {
+              requestAnimationFrame(scroll);
+            }
+          };
+          requestAnimationFrame(scroll);
+        } else {
+          // If element not found immediately, reset scrollAttempted to try again on next render
+          setScrollAttempted(false);
+        }
+      }
+    }
+  }, [loading, sortedComments, scrollAttempted]); // Re-run when loading state changes or comments are updated
 
   const handleVote = async (commentId: string, voteType: 'upvote' | 'downvote') => {
     const currentVote = userVotes[commentId];
@@ -260,13 +294,34 @@ const CommentsPage = () => {
     }
   };
 
+  const handlePin = async (commentId: string, isPinned: boolean) => {
+    try {
+      const action = isPinned ? 'pin' : 'unpin';
+      const response = await fetch(`/api/comments?id=${commentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to ${action} comment`);
+      }
+
+      // Re-fetch comments to get the updated pinned status and order
+      fetchComments();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
   return (
     <Container size="md" py="lg">
       <Title order={1} mb="lg">
         Comments
       </Title>
       <Stack>
-        <Card withBorder radius="md" p="lg">
+        <Card withBorder radius="md" p="lg" pos="relative">
+          <LoadingOverlay visible={loading} zIndex={1000} overlayProps={{ radius: "sm", blur: 2 }} />
           <Title order={2} mb="md">Leave a Comment</Title>
           <form onSubmit={handleSubmit}>
             <Stack>
@@ -320,8 +375,7 @@ const CommentsPage = () => {
         <Group justify="space-between" align="center" mb="md">
           <Divider style={{ flexGrow: 1 }} />
           <Select
-            label="Sort by"
-            placeholder="Sort comments"
+            placeholder={`Sort by: ${sortBy === 'created_at' ? 'Date' : 'Votes'}`}
             data={[
               { value: 'created_at', label: 'Date' },
               { value: 'score', label: 'Votes' },
@@ -331,11 +385,24 @@ const CommentsPage = () => {
             size="sm"
             w={150} // Set a fixed width to make it smaller
           />
+          <Button onClick={() => {
+            fetchComments();
+            setIsRefreshingOnCooldown(true);
+            setTimeout(() => {
+              setIsRefreshingOnCooldown(false);
+            }, 2500);
+          }} leftSection={<IconRefresh size={14} />} variant="default" size="sm" disabled={loading || isRefreshingOnCooldown}>Refresh</Button>
         </Group>
         <Stack mt="lg">
-          {sortedComments && sortedComments.length > 0 ? (
+          {loading ? (
+            <Stack>
+              <Skeleton height={80} radius="md" />
+              <Skeleton height={80} radius="md" />
+              <Skeleton height={80} radius="md" />
+            </Stack>
+          ) : sortedComments && sortedComments.length > 0 ? (
             sortedComments.map((comment) => (
-              <CommentCard key={comment.id} {...comment} onVote={handleVote} allUserVotes={userVotes} onReply={handleReply} depth={comment.depth} />
+              <CommentCard key={comment.id} id={comment.id} {...comment} onVote={handleVote} allUserVotes={userVotes} onReply={handleReply} onPin={handlePin} depth={comment.depth} highlightedCommentId={highlightedCommentId} />
             ))
           ) : (
             <Text>No comments yet. Be the first to comment!</Text>

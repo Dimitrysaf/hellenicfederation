@@ -3,9 +3,17 @@ import { sql } from '@vercel/postgres';
 
 export async function GET(request: NextRequest) {
   try {
-    const { rows: comments } = await sql`
-      SELECT id, username, comment, upvotes, downvotes, parent_id, created_at, depth FROM comments ORDER BY created_at DESC
+    const { rows: pinnedComments } = await sql`
+      SELECT id, username, comment, upvotes, downvotes, parent_id, created_at, depth, pinned FROM comments WHERE pinned = TRUE
     `;
+    const pinnedComment = pinnedComments[0] || null;
+
+    const { rows: otherComments } = await sql`
+      SELECT id, username, comment, upvotes, downvotes, parent_id, created_at, depth, pinned FROM comments WHERE pinned = FALSE ORDER BY created_at DESC
+    `;
+
+    const comments = pinnedComment ? [pinnedComment, ...otherComments] : otherComments;
+
     return NextResponse.json({ comments });
   } catch (error) {
     console.error('Error fetching comments:', error);
@@ -76,6 +84,15 @@ export async function PUT(request: NextRequest) {
     case 'remove_downvote':
       query = sql`UPDATE comments SET downvotes = downvotes - 1 WHERE id = ${comment_id} RETURNING *`;
       break;
+    case 'pin':
+      // Unpin any currently pinned comment
+      await sql`UPDATE comments SET pinned = FALSE WHERE pinned = TRUE`;
+      // Pin the new comment
+      query = sql`UPDATE comments SET pinned = TRUE WHERE id = ${comment_id} RETURNING *`;
+      break;
+    case 'unpin':
+      query = sql`UPDATE comments SET pinned = FALSE WHERE id = ${comment_id} RETURNING *`;
+      break;
     default:
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
   }
@@ -85,5 +102,22 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ comment: updatedComment[0] });
   } catch (error) {
     return NextResponse.json({ error }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+
+  if (!id) {
+    return NextResponse.json({ error: 'Comment ID is required' }, { status: 400 });
+  }
+
+  try {
+    await sql`DELETE FROM comments WHERE id = ${id}`;
+    return NextResponse.json({ message: 'Comment deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting comment:', error);
+    return NextResponse.json({ error: error.message || 'An unknown error occurred' }, { status: 500 });
   }
 }

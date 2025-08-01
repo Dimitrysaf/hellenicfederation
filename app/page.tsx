@@ -9,17 +9,36 @@ import classes from './page.module.css';
 export default function ConstitutionPage() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
+  const [highlightedArticleId, setHighlightedArticleId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/articles')
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchArticles = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/articles');
+        const data = await res.json();
         setArticles(data.sort((a: Article, b: Article) => a.number - b.number));
-      })
-      .finally(() => {
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    fetchArticles();
   }, []);
+
+  useEffect(() => {
+    if (!loading) { // Ensure articles are loaded before attempting to scroll
+      const articleId = window.location.hash.substring(1); // Remove the #
+      if (articleId) {
+        setHighlightedArticleId(articleId);
+        const element = document.getElementById(articleId);
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }, 100); // Small delay to ensure element is rendered
+        }
+      }
+    }
+  }, [loading, articles]);
 
   return (
     <>
@@ -48,7 +67,7 @@ export default function ConstitutionPage() {
         ) : (
           <Stack>
             {articles.map((article) => (
-              <div key={article.id}>
+              <div key={article.id} id={article.id.toString()} style={{ scrollMarginTop: '56px' }}>
                 <Group style={{ alignItems: 'center' }} className={classes['article-heading-group']}>
                   <CopyButton value={`${window.location.origin}${window.location.pathname}#${article.id}`} timeout={2000}>
                     {({ copied, copy }) => (
@@ -57,7 +76,7 @@ export default function ConstitutionPage() {
                       </ActionIcon>
                     )}
                   </CopyButton>
-                  <Title order={3} id={article.id.toString()} style={{ scrollMarginTop: '56px' }}>
+                  <Title order={3}>
                     <a href={`#${article.id}`} style={{ color: 'inherit' }}>
                       Άρθρο {article.number} - {article.name}
                     </a>

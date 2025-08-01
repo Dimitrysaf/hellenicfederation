@@ -2,22 +2,30 @@
 
 import { useEffect, useState } from 'react';
 import {
-  Button,
-  Container,
-  Group,
-  Modal,
-  NumberInput,
   Table,
+  Button,
+  Group,
   Text,
   TextInput,
-  Title,
-  Skeleton,
-  Stack,
+  Box,
+  Flex,
+  Pagination,
+  Loader,
+  Center,
+  CopyButton,
+  Tooltip,
+  ActionIcon,
+  Modal, 
+  NumberInput,
+  SimpleGrid
 } from '@mantine/core';
-import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
-import { useDisclosure } from '@mantine/hooks';
+import { IconEdit, IconTrash, IconPlus, IconSearch, IconCopy, IconCheck } from '@tabler/icons-react';
+import { useDisclosure, useDebouncedValue } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { FAQ } from '@/db/faqs';
+import ErrorDisplay from '../ErrorDisplay/ErrorDisplay';
+
+const FAQS_PER_PAGE = 10;
 
 export function FaqTab() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -27,17 +35,33 @@ export function FaqTab() {
   const [editedOrder, setEditedOrder] = useState<number | string>('');
   const [opened, { open, close }] = useDisclosure(false);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery] = useDebouncedValue(searchQuery, 300);
+  const [activePage, setActivePage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/faqs')
-      .then((res) => res.json())
-      .then((data) => {
-        setFaqs(data.sort((a: FAQ, b: FAQ) => a.order - b.order));
-      })
-      .finally(() => {
+    const fetchFaqs = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/faqs');
+        const data = await res.json();
+        const filteredFaqs = data.filter((faq: FAQ) =>
+          faq.question.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          faq.answer.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+        );
+        setFaqs(filteredFaqs.sort((a: FAQ, b: FAQ) => a.order - b.order));
+        setTotalPages(Math.ceil(filteredFaqs.length / FAQS_PER_PAGE));
+      } catch (error) {
+        console.error('Error fetching FAQs:', error);
+        setError(error.message);
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    };
+    fetchFaqs();
+  }, [debouncedSearchQuery]);
 
   useEffect(() => {
     if (selectedFaq) {
@@ -88,12 +112,9 @@ export function FaqTab() {
           if (!response.ok) {
             throw new Error('Failed to delete FAQ');
           }
-
-          // Re-fetch FAQs to ensure local state is in sync with the database
-          const updatedData = await fetch('/api/faqs').then((res) => res.json());
-          setFaqs(updatedData.sort((a: FAQ, b: FAQ) => a.order - b.order));
-        } catch (error) {
-          console.error('Error deleting FAQ:', error);
+          fetchFaqs();
+        } catch (error: any) {
+          setError(error.message);
           modals.open({
             title: 'Σφάλμα',
             children: <Text size="sm">Προέκυψε σφάλμα κατά τη διαγραφή της συχνής ερώτησης.</Text>,
@@ -157,14 +178,12 @@ export function FaqTab() {
         throw new Error('Failed to save FAQs');
       }
 
-      // Re-fetch FAQs to ensure local state is in sync with the database
-      const updatedData = await fetch('/api/faqs').then((res) => res.json());
-      setFaqs(updatedData.sort((a: FAQ, b: FAQ) => a.order - b.order));
+      fetchFaqs();
 
       close();
       setSelectedFaq(null);
-    } catch (error) {
-      console.error('Error saving FAQs:', error);
+    } catch (error: any) {
+      setError(error.message);
       modals.open({
         title: 'Σφάλμα',
         children: <Text size="sm">Προέκυψε σφάλμα κατά την αποθήκευση των συχνών ερωτήσεων.</Text>,
@@ -177,43 +196,90 @@ export function FaqTab() {
     setSelectedFaq(null);
   };
 
-  const rows = faqs.map((faq) => (
+  const startIndex = (activePage - 1) * FAQS_PER_PAGE;
+  const endIndex = startIndex + FAQS_PER_PAGE;
+  const paginatedFaqs = faqs.slice(startIndex, endIndex);
+
+  const rows = paginatedFaqs.map((faq) => (
     <Table.Tr key={faq.id}>
-      <Table.Td>{faq.order}</Table.Td>
+      <Table.Td visibleFrom="sm">
+        <CopyButton value={faq.id} timeout={2000}>
+          {({ copied, copy }) => (
+            <Tooltip label={copied ? 'Copied' : 'Copy ID'} withArrow position="right">
+              <ActionIcon color={copied ? 'teal' : 'gray'} variant="subtle" onClick={copy}>
+                {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </CopyButton>
+      </Table.Td>
+      <Table.Td visibleFrom="sm">{faq.order}</Table.Td>
       <Table.Td>{faq.question}</Table.Td>
+      <Table.Td style={{ maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }} visibleFrom="sm">
+        <Text lineClamp={2} style={{ wordBreak: 'break-word' }}>{faq.answer}</Text>
+      </Table.Td>
       <Table.Td>
-        <Group justify="flex-end">
-          <Button size="xs" color="red" onClick={() => handleDelete(faq.id)}><IconTrash size={14} /></Button>
-          <Button size="xs" onClick={() => handleEdit(faq)}><IconEdit size={14} /></Button>
+        <Group gap="xs" wrap="nowrap">
+          <ActionIcon variant="light" color="blue" onClick={() => handleEdit(faq)} title="Edit FAQ">
+            <IconEdit size={16} />
+          </ActionIcon>
+          <ActionIcon variant="light" color="red" onClick={() => handleDelete(faq.id)} title="Delete FAQ">
+            <IconTrash size={16} />
+          </ActionIcon>
         </Group>
       </Table.Td>
     </Table.Tr>
   ));
 
   return (
-    <Container>
-      <Group justify="space-between" style={{ marginBottom: 16 }}>
-        <Title><b>Πίνακας συχνών ερωτήσεων</b></Title>
-        <Button onClick={handleAdd}><IconPlus size={14}/></Button>
-      </Group>
+    <Box>
+      <Flex justify="space-between" align="center" mb="md">
+        <Text fz="lg" fw={700}>Manage FAQs</Text>
+        <SimpleGrid cols={2}>
+          <TextInput
+            placeholder="Search FAQs..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.currentTarget.value)}
+            leftSection={<IconSearch size={16} />}
+          />
+          <Button onClick={handleAdd} leftSection={<IconPlus size={14} />}>Add FAQ</Button>
+        </SimpleGrid>
+      </Flex>
+
       {loading ? (
-        <Stack>
-          <Skeleton height={40} radius="sm" />
-          <Skeleton height={40} radius="sm" />
-          <Skeleton height={40} radius="sm" />
-          <Skeleton height={40} radius="sm" />
-        </Stack>
+        <Center style={{ height: 200 }}>
+          <Loader />
+        </Center>
+      ) : error ? (
+        <ErrorDisplay message={error} />
+      ) : faqs.length === 0 ? (
+        <Center style={{ height: 200 }}>
+          <Text>No FAQs found.</Text>
+        </Center>
       ) : (
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th style={{ width: '1%' }}>Α/A</Table.Th>
-              <Table.Th>Ερώτηση</Table.Th>
-              <Table.Th style={{ width: '14%' }}>Ενέργειες</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+        <>
+          <Table striped highlightOnHover withTableBorder withColumnBorders>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th style={{ width: '0%' }} visibleFrom="sm">ID</Table.Th>
+                <Table.Th style={{ width: '5%' }} visibleFrom="sm">Order</Table.Th>
+                <Table.Th style={{ width: '20%' }}>Question</Table.Th>
+                <Table.Th style={{ width: '50%' }} visibleFrom="sm">Answer</Table.Th>
+                <Table.Th style={{ width: '0%' }}>Actions</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+          <Group justify="flex-end" mt="md">
+            <Pagination
+              total={totalPages}
+              value={activePage}
+              onChange={setActivePage}
+              siblings={1}
+              boundaries={1}
+            />
+          </Group>
+        </>
       )}
 
       <Modal
@@ -245,6 +311,6 @@ export function FaqTab() {
           </Button>
         </Group>
       </Modal>
-    </Container>
+    </Box>
   );
 }

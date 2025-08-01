@@ -13,12 +13,20 @@ import {
   Text,
   TextInput,
   Title,
-  Skeleton,
   Stack,
   LoadingOverlay,
+  Box,
+  Flex,
+  Pagination,
+  Loader,
+  Center,
+  CopyButton,
+  Tooltip,
+  ActionIcon,
+  SimpleGrid
 } from '@mantine/core';
-import { IconEdit, IconTrash, IconPlus } from '@tabler/icons-react';
-import { useDisclosure } from '@mantine/hooks';
+import { IconEdit, IconTrash, IconPlus, IconSearch, IconCopy, IconCheck, IconEye } from '@tabler/icons-react';
+import { useDisclosure, useDebouncedValue } from '@mantine/hooks';
 import { modals } from '@mantine/modals';
 import { Link, RichTextEditor } from '@mantine/tiptap';
 import { Article } from '@/db/articles';
@@ -28,7 +36,9 @@ import TextAlign from '@tiptap/extension-text-align';
 import Superscript from '@tiptap/extension-superscript';
 import SubScript from '@tiptap/extension-subscript';
 import { OrderedListExtension } from './OrderedListExtension';
+import ErrorDisplay from '../ErrorDisplay/ErrorDisplay';
 
+const ARTICLES_PER_PAGE = 10;
 
 export function ArticlesTab() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -38,6 +48,11 @@ export function ArticlesTab() {
   const [opened, { open, close }] = useDisclosure(false);
   const [loading, setLoading] = useState(true);
   const [isSavingOrDeleting, setIsSavingOrDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearchQuery] = useDebouncedValue(searchQuery, 300);
+  const [activePage, setActivePage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
@@ -68,16 +83,25 @@ export function ArticlesTab() {
   });
 
   useEffect(() => {
-    fetch('/api/articles')
-      .then((res) => res.json())
-      .then((data) => {
-        
-        setArticles(data.sort((a: Article, b: Article) => a.number - b.number));
-      })
-      .finally(() => {
+    const fetchArticles = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/articles');
+        const data = await res.json();
+        const filteredArticles = data.filter((article: Article) =>
+          article.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+          article.content.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+        );
+        setArticles(filteredArticles.sort((a: Article, b: Article) => a.number - b.number));
+        setTotalPages(Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE));
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
         setLoading(false);
-      });
-  }, []);
+      }
+    };
+    fetchArticles();
+  }, [debouncedSearchQuery]);
 
   useEffect(() => {
     if (selectedArticle) {
@@ -129,16 +153,9 @@ export function ArticlesTab() {
           if (!response.ok) {
             throw new Error('Failed to delete article');
           }
-
-          // Re-fetch articles to ensure local state is in sync with the database
-          const updatedData = await fetch('/api/articles').then((res) => res.json());
-          setArticles(updatedData.sort((a: Article, b: Article) => a.number - b.number));
-        } catch (error) {
-          
-          modals.open({
-            title: 'Σφάλμα',
-            children: <Text size="sm">Προέκυψε σφάλμα κατά τη διαγραφή του άρθρου.</Text>,
-          });
+          fetchArticles();
+        } catch (error: any) {
+          setError(error.message);
         } finally {
           setIsSavingOrDeleting(false);
         }
@@ -209,18 +226,12 @@ export function ArticlesTab() {
         throw new Error('Failed to save articles');
       }
 
-      // Re-fetch articles to ensure local state is in sync with the database
-      const updatedData = await fetch('/api/articles').then((res) => res.json());
-      setArticles(updatedData.sort((a: Article, b: Article) => a.number - b.number));
+      fetchArticles();
 
       close();
       setSelectedArticle(null);
-    } catch (error) {
-      
-      modals.open({
-        title: 'Σφάλμα',
-        children: <Text size="sm">Προέκυψε σφάλμα κατά την αποθήκευση των άρθρων.</Text>,
-      });
+    } catch (error: any) {
+      setError(error.message);
     } finally {
       setIsSavingOrDeleting(false);
     }
@@ -231,43 +242,97 @@ export function ArticlesTab() {
     setSelectedArticle(null);
   };
 
-  const rows = articles.map((article) => (
+  const handleView = (id: string) => {
+    window.open(`/#${id}`, '_blank');
+  };
+
+  const startIndex = (activePage - 1) * ARTICLES_PER_PAGE;
+  const endIndex = startIndex + ARTICLES_PER_PAGE;
+  const paginatedArticles = articles.slice(startIndex, endIndex);
+
+  const rows = paginatedArticles.map((article) => (
     <Table.Tr key={article.id}>
-      <Table.Td>{article.number}</Table.Td>
+      <Table.Td visibleFrom="sm">
+        <CopyButton value={article.id} timeout={2000}>
+          {({ copied, copy }) => (
+            <Tooltip label={copied ? 'Copied' : 'Copy ID'} withArrow position="right">
+              <ActionIcon color={copied ? 'teal' : 'gray'} variant="subtle" onClick={copy}>
+                {copied ? <IconCheck size={16} /> : <IconCopy size={16} />}
+              </ActionIcon>
+            </Tooltip>
+          )}
+        </CopyButton>
+      </Table.Td>
+      <Table.Td visibleFrom="sm">{article.number}</Table.Td>
       <Table.Td>{article.name}</Table.Td>
+      <Table.Td style={{ maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }} visibleFrom="sm">
+        <Text lineClamp={2} style={{ wordBreak: 'break-word' }}>{article.content}</Text>
+      </Table.Td>
       <Table.Td>
-        <Group justify="flex-end">
-          <Button size="xs" color="red" onClick={() => handleDelete(article.id)}><IconTrash size={14} /></Button>
-          <Button size="xs" onClick={() => handleEdit(article)}><IconEdit size={14} /></Button>
+        <Group gap="xs" wrap="nowrap">
+          <ActionIcon variant="light" color="blue" onClick={() => handleView(article.id)} title="View Article">
+            <IconEye size={16} />
+          </ActionIcon>
+          <ActionIcon variant="light" color="blue" onClick={() => handleEdit(article)} title="Edit Article">
+            <IconEdit size={16} />
+          </ActionIcon>
+          <ActionIcon variant="light" color="red" onClick={() => handleDelete(article.id)} title="Delete Article">
+            <IconTrash size={16} />
+          </ActionIcon>
         </Group>
       </Table.Td>
     </Table.Tr>
   ));
 
   return (
-    <Container>
-      <Group justify="space-between" style={{ marginBottom: 16 }}>
-        <Title><b>Πίνακας άρθρων</b></Title>
-        <Button onClick={handleAdd}><IconPlus size={14}/></Button>
-      </Group>
+    <Box>
+      <Flex justify="space-between" align="center" mb="md">
+        <Text fz="lg" fw={700}>Manage Articles</Text>
+        <SimpleGrid cols={2}>
+          <TextInput
+            placeholder="Search articles..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.currentTarget.value)}
+            leftSection={<IconSearch size={16} />}
+          />
+          <Button onClick={handleAdd} leftSection={<IconPlus size={14} />}>Add Article</Button>
+        </SimpleGrid>
+      </Flex>
+
       {loading ? (
-        <Stack>
-          <Skeleton height={40} radius="sm" />
-          <Skeleton height={40} radius="sm" />
-          <Skeleton height={40} radius="sm" />
-          <Skeleton height={40} radius="sm" />
-        </Stack>
+        <Center style={{ height: 200 }}>
+          <Loader />
+        </Center>
+      ) : error ? (
+        <ErrorDisplay message={error} />
+      ) : articles.length === 0 ? (
+        <Center style={{ height: 200 }}>
+          <Text>No articles found.</Text>
+        </Center>
       ) : (
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th style={{ width: '1%' }}>Α/A</Table.Th>
-              <Table.Th>Όνομα</Table.Th>
-              <Table.Th style={{ width: '14%' }}>Ενέργειες</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>{rows}</Table.Tbody>
-        </Table>
+        <>
+          <Table striped highlightOnHover withTableBorder withColumnBorders>
+            <Table.Thead>
+              <Table.Tr>
+                <Table.Th style={{ width: '0%' }} visibleFrom="sm">ID</Table.Th>
+                <Table.Th style={{ width: '5%' }} visibleFrom="sm">Number</Table.Th>
+                <Table.Th style={{ width: '15%' }}>Name</Table.Th>
+                <Table.Th style={{ width: '50%' }} visibleFrom="sm">Content</Table.Th>
+                <Table.Th style={{ width: '0%' }}>Actions</Table.Th>
+              </Table.Tr>
+            </Table.Thead>
+            <Table.Tbody>{rows}</Table.Tbody>
+          </Table>
+          <Group justify="flex-end" mt="md">
+            <Pagination
+              total={totalPages}
+              value={activePage}
+              onChange={setActivePage}
+              siblings={1}
+              boundaries={1}
+            />
+          </Group>
+        </>
       )}
 
       <Modal
@@ -343,6 +408,6 @@ export function ArticlesTab() {
           </Button>
         </Group>
       </Modal>
-    </Container>
+    </Box>
   );
 }

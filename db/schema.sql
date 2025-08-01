@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS comments (
     article_link_name VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     depth INT DEFAULT 0,
+    pinned BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (article_id) REFERENCES articles(id),
     FOREIGN KEY (parent_id) REFERENCES comments(id)
 );

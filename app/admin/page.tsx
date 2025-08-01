@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Tabs, Container, Group, Title, Modal, PinInput, Button, Text, Center } from '@mantine/core';
 import { ArticlesTab } from '@/components/ArticlesTab/ArticlesTab';
 import { FaqTab } from '@/components/FaqTab/FaqTab';
+import { CommentsTab } from '@/components/CommentsTab/CommentsTab';
 import { useRouter } from 'next/navigation';
 import { useDisclosure } from '@mantine/hooks';
 
@@ -75,6 +76,7 @@ export default function AdminPage() {
           <Tabs.List>
             <Tabs.Tab value="articles">Άρθρα</Tabs.Tab>
             <Tabs.Tab value="faqs">Ερωτήσεις</Tabs.Tab>
+            <Tabs.Tab value="comments">Σχόλια</Tabs.Tab>
           </Tabs.List>
 
           <Tabs.Panel value="articles" pt="xs">
@@ -83,6 +85,10 @@ export default function AdminPage() {
 
           <Tabs.Panel value="faqs" pt="xs">
             <FaqTab />
+          </Tabs.Panel>
+
+          <Tabs.Panel value="comments" pt="xs">
+            <CommentsTab />
           </Tabs.Panel>
         </Tabs>
       </div>
