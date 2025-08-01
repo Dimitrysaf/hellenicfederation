@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ comments });
   } catch (error) {
     console.error('Error fetching comments:', error);
-    return NextResponse.json({ error: error.message || 'An unknown error occurred' }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
 
@@ -57,7 +60,10 @@ export async function POST(request: NextRequest) {
     `;
     return NextResponse.json({ comment: newComment[0] });
   } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
 
@@ -101,7 +107,10 @@ export async function PUT(request: NextRequest) {
     const { rows: updatedComment } = await query;
     return NextResponse.json({ comment: updatedComment[0] });
   } catch (error) {
-    return NextResponse.json({ error }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }
 
@@ -118,6 +127,9 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ message: 'Comment deleted successfully' });
   } catch (error) {
     console.error('Error deleting comment:', error);
-    return NextResponse.json({ error: error.message || 'An unknown error occurred' }, { status: 500 });
+    if (error instanceof Error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ error: 'An unknown error occurred' }, { status: 500 });
   }
 }

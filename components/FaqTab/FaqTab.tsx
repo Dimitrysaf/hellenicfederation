@@ -41,25 +41,30 @@ export function FaqTab() {
   const [totalPages, setTotalPages] = useState(1);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchFaqs = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/faqs');
-        const data = await res.json();
-        const filteredFaqs = data.filter((faq: FAQ) =>
-          faq.question.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-          faq.answer.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-        );
-        setFaqs(filteredFaqs.sort((a: FAQ, b: FAQ) => a.order - b.order));
-        setTotalPages(Math.ceil(filteredFaqs.length / FAQS_PER_PAGE));
-      } catch (error) {
-        console.error('Error fetching FAQs:', error);
+  const fetchFaqs = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/faqs');
+      const data = await res.json();
+      const filteredFaqs = data.filter((faq: FAQ) =>
+        faq.question.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        faq.answer.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+      );
+      setFaqs(filteredFaqs.sort((a: FAQ, b: FAQ) => a.order - b.order));
+      setTotalPages(Math.ceil(filteredFaqs.length / FAQS_PER_PAGE));
+    } catch (error) {
+      console.error('Error fetching FAQs:', error);
+      if (error instanceof Error) {
         setError(error.message);
-      } finally {
-        setLoading(false);
+      } else {
+        setError('An unknown error occurred');
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchFaqs();
   }, [debouncedSearchQuery]);
 
@@ -90,7 +95,7 @@ export function FaqTab() {
       title: 'Διαγραφή FAQ',
       children: (
         <Text size="sm">
-          Είστε βέβαιοι ότι θέλετε να διαγράψετε αυτήν την ερώτηση; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.
+          Είστε βέβαιοι ότι θέτετε να διαγράψετε αυτήν την ερώτηση; Αυτή η ενέργεια δεν μπορεί να αναιρεθεί.
         </Text>
       ),
       labels: { confirm: 'Διαγραφή', cancel: 'Ακύρωση' },
@@ -113,8 +118,12 @@ export function FaqTab() {
             throw new Error('Failed to delete FAQ');
           }
           fetchFaqs();
-        } catch (error: any) {
-          setError(error.message);
+        } catch (error) {
+          if (error instanceof Error) {
+            setError(error.message);
+          } else {
+            setError('An unknown error occurred');
+          }
           modals.open({
             title: 'Σφάλμα',
             children: <Text size="sm">Προέκυψε σφάλμα κατά τη διαγραφή της συχνής ερώτησης.</Text>,
@@ -182,8 +191,12 @@ export function FaqTab() {
 
       close();
       setSelectedFaq(null);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unknown error occurred');
+      }
       modals.open({
         title: 'Σφάλμα',
         children: <Text size="sm">Προέκυψε σφάλμα κατά την αποθήκευση των συχνών ερωτήσεων.</Text>,

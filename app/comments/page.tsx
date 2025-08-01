@@ -15,6 +15,7 @@ interface Comment {
   score: number;
   depth: number;
   pinned: boolean;
+  created_at: string;
 }
 
 interface CommentNode extends Comment {
@@ -181,7 +182,11 @@ const CommentsPage = () => {
       console.log('Fetched comments data:', data.comments);
       setComments(buildCommentTree(data.comments || []));
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
       setComments([]);
     } finally {
       setLoading(false);
@@ -290,7 +295,11 @@ const CommentsPage = () => {
         throw new Error('Invalid response from server');
       }
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
     }
   };
 
@@ -310,7 +319,11 @@ const CommentsPage = () => {
       // Re-fetch comments to get the updated pinned status and order
       fetchComments();
     } catch (err) {
-      setError(err.message);
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('An unknown error occurred');
+      }
     }
   };
 
@@ -402,7 +415,7 @@ const CommentsPage = () => {
             </Stack>
           ) : sortedComments && sortedComments.length > 0 ? (
             sortedComments.map((comment) => (
-              <CommentCard key={comment.id} id={comment.id} {...comment} onVote={handleVote} allUserVotes={userVotes} onReply={handleReply} onPin={handlePin} depth={comment.depth} highlightedCommentId={highlightedCommentId} />
+              <CommentCard key={comment.id} {...comment} onVote={handleVote} allUserVotes={userVotes} onReply={handleReply} onPin={handlePin} depth={comment.depth} highlightedCommentId={highlightedCommentId} />
             ))
           ) : (
             <Text>No comments yet. Be the first to comment!</Text>

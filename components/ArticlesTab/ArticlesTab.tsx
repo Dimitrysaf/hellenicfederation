@@ -82,24 +82,29 @@ export function ArticlesTab() {
     immediatelyRender: false,
   });
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch('/api/articles');
-        const data = await res.json();
-        const filteredArticles = data.filter((article: Article) =>
-          article.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
-          article.content.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
-        );
-        setArticles(filteredArticles.sort((a: Article, b: Article) => a.number - b.number));
-        setTotalPages(Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE));
-      } catch (error: any) {
+  const fetchArticles = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/articles');
+      const data = await res.json();
+      const filteredArticles = data.filter((article: Article) =>
+        article.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()) ||
+        article.content.toLowerCase().includes(debouncedSearchQuery.toLowerCase())
+      );
+      setArticles(filteredArticles.sort((a: Article, b: Article) => a.number - b.number));
+      setTotalPages(Math.ceil(filteredArticles.length / ARTICLES_PER_PAGE));
+    } catch (error) {
+      if (error instanceof Error) {
         setError(error.message);
-      } finally {
-        setLoading(false);
+      } else {
+        setError('An unknown error occurred');
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchArticles();
   }, [debouncedSearchQuery]);
 
@@ -154,8 +159,12 @@ export function ArticlesTab() {
             throw new Error('Failed to delete article');
           }
           fetchArticles();
-        } catch (error: any) {
-          setError(error.message);
+        } catch (error) {
+          if (error instanceof Error) {
+            setError(error.message);
+          } else {
+            setError('An unknown error occurred');
+          }
         } finally {
           setIsSavingOrDeleting(false);
         }
@@ -230,8 +239,12 @@ export function ArticlesTab() {
 
       close();
       setSelectedArticle(null);
-    } catch (error: any) {
-      setError(error.message);
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unknown error occurred');
+      }
     } finally {
       setIsSavingOrDeleting(false);
     }

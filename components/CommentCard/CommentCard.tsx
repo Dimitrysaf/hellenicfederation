@@ -90,6 +90,8 @@ const CommentCard: React.FC<CommentCardProps> = ({ id, username, comment, score,
               onVote={onVote}
               allUserVotes={allUserVotes}
               onReply={onReply}
+              onPin={onPin}
+              highlightedCommentId={highlightedCommentId}
             />
           ))}
           {children.length > REPLY_LIMIT && !showAllReplies && (
